@@ -2,8 +2,8 @@
 
 .MEMORYMAP                      ; Begin describing the system architecture.
   SLOTSIZE $8000                ; The slot is $8000 bytes in size. More details on slots later.
-  DEFAULTSLOT 0
-  SLOT 0 $8000                  ; Defines Slot 0's starting address.
+  DEFAULTSLOT 0                 ; There's only 1 slot in SNES, there are more in other consoles.
+  SLOT 0 $8000                  ; Define's Slot 0's starting address.
 .ENDME          ; End MemoryMap definition
 
 .ROMBANKSIZE $8000              ; Every ROM bank is 32 KBytes in size
@@ -12,7 +12,7 @@
 .SNESHEADER
   ID "SNES"                     ; 1-4 letter string, just leave it as "SNES"
   
-  NAME "SNES Tile Demo       "  ; Program Title - can't be over 21 bytes,
+  NAME "A small game         "  ; Program Title - can't be over 21 bytes,
   ;    "123456789012345678901"  ; use spaces for unused bytes of the name.
 
   SLOWROM
@@ -21,7 +21,7 @@
   CARTRIDGETYPE $00             ; $00 = ROM only, see WLA documentation for others
   ROMSIZE $08                   ; $08 = 2 Mbits,  see WLA doc for more..
   SRAMSIZE $00                  ; No SRAM         see WLA doc for more..
-  COUNTRY $01                   ; $01 = U.S.  $00 = Japan  $02 = Australia, Europe, Oceania and Asia  $03 = Sweden  $04 = Finland  $05 = Denmark  $06 = France  $07 = Holland  $08 = Spain  $09 = Germany, Austria and Switzerland  $0A = Italy  $0B = Hong Kong and China  $0C = Indonesia  $0D = Korea
+  COUNTRY $01                   ; $01 = U.S.  $00 = Japan, that's all I know
   LICENSEECODE $00              ; Just use $00
   VERSION $00                   ; $00 = 1.00, $01 = 1.01, etc.
 .ENDSNES
@@ -37,7 +37,7 @@
 .SNESEMUVECTOR                  ; Define Emulation Mode interrupt vector table
   COP EmptyHandler
   ABORT EmptyHandler
-  NMI EmptyHandler
+  NMI VBlank
   RESET Start                   ; where execution starts
   IRQBRK EmptyHandler
 .ENDEMUVECTOR
