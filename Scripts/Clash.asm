@@ -38,6 +38,10 @@ cmp $0200	; compare it with the previous
 bne +		; if not equal, go
 rti		; if it's equal, then return
 
+;;;;;;;;;;;;;;;;;;;;;;;
+;JOYPAD CONTROL CHECKS;
+;;;;;;;;;;;;;;;;;;;;;;;
+
 + sta $0200	; store
 and #%00010000	; get the start button
 		; this will be the delete key
@@ -110,7 +114,7 @@ lda $0201	; get control
 cmp #%00000100	; down?
 bne +		; if not, skip
 lda $0101
-cmp #$02	; if on the bottom,
+cmp #$07	; if on the bottom,
 beq +		; don't do anything
 inc $0101	; add 1 to Y
 +
@@ -128,11 +132,11 @@ lda $0201	; get control
 cmp #%00000001	; right?
 bne +		; if not, skip
 lda $0100
-cmp #$02	; if on the right,
+cmp #$08	; if on the right,
 beq +		; don't do anything
 inc $0100	; add 1 to X
 +
-rti		; F|NisH3D!
+rti
 ;--------------------------------------
 .ends
 
@@ -153,7 +157,6 @@ inx
 cpx #8
 bne -
 
-;I'll explain this later
 ;We'll have two palettes, only one color is needed for the second:
 lda #33		;The color we need is the 33rd
 sta $2121
@@ -163,7 +166,7 @@ lda.l Palette2+1
 sta $2122
 ldx #UntitledData	; Address
 lda #:UntitledData	; of UntitledData
-ldy #(15*16*2)	; length of data
+ldy #(16*16*2)	; length of data
 stx $4302	; write
 sta $4304	; address
 sty $4305	; and length
@@ -220,7 +223,7 @@ stx $2116	; from $4000
 .endr
 ldx #$6000	; BG2 will start here
 stx $2116
-ldx #$000C	; And will contain 1 tile
+ldx #$000C	; And will contain 1 tile (cursor)
 stx $2118
 ;set up the screen
 lda #%00110000	; 16x16 tiles, mode 0
