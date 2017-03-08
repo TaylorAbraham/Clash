@@ -50,10 +50,54 @@ rti				; button didn't change, so return
 ;;;;;;;;;;;;;;;;;;;;;;
 +
 sta $0200		; store as previous joystick input
+
+
+; TEST FUNCTION - 'pushes X that player is on'
+lda $0101	; Get player Y
+sta $0202	; Store
+clc
+adc $0202
+adc $0202
+adc $0202
+adc $0202
+adc $0202
+adc $0202
+adc $0202	; Mul by 8
+adc $0100	; Add player X
+ldx #$0000	; Clear X
+tax
+lda $0000,x
+CMP #$0000
+BEQ +
+LDY #$0000	;Clear Y
+STY $0000,x
+sta $0001,x
+
++
+lda $0200
 cmp #%10000000  ; B pressed?
 bne +			; if not B, jump
 ; B has been pressed
 ; do stuff
+; write an X at player position, this will be a projectile
+lda $0101	; Get player Y
+sta $0202	; Store it to a temporary variable
+; A*3
+clc
+adc	$0202
+adc $0202
+; A has now been multiplied by 3
+adc $0100	; Add player X
+; A contains address to write to
+ldx #$0000	; Clear register X
+tax			; Transfer A to X
+lda #$08	; Load an 'X' into register A
+sta $0000,x; Store 'X' into the address held in X
+
+
+
+;inc $0101   ; Decrement player y value
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;JOYPAD MOVEMENT CHECKS;
@@ -77,7 +121,7 @@ lda $0201 		; get stored joypad input
 cmp #%00000100  ; down?
 bne +			; if not down, jump
 lda $0101		; get player y-value
-cmp #$05		; player at bottom of map?
+cmp #$06		; player at bottom of map?
 beq +			; if at bottom, jump
 inc $0101		; move player 1 down
 
@@ -95,7 +139,7 @@ lda $0201 		; get stored joypad input
 cmp #%00000001  ; right?
 bne +			; if not right, jump
 lda $0100		; get player x-value
-cmp #$05		; player at left of map?
+cmp #$07		; player at left of map?
 beq +			; if at far right, jump
 inc $0100		; move player 1 right
 
@@ -208,9 +252,9 @@ sta $212C
 rep #$20	; 16bit a
 lda #$07FF	; this is -1 for BG1
 sep #$20	; 8bit a
-sta $210E	; BG1 vert scroll
+sta $210F	; BG1 vert scroll
 xba
-sta $210E
+sta $210F
 
 rep #$20	; 16bit a
 lda #$FFFF	; this is -1 for BG2
@@ -248,22 +292,22 @@ sta $2110		; write 16 bits
 ;--------------------------------------
 ldx #$0000		; reset our counter
 -
-rep #%00100000		; 16 bit A
+rep #%00100000	; 16 bit A
 lda #$0000		; empty it
-sep #%00100000		; 8 bit a
+sep #%00100000	; 8 bit a
 lda VRAMtable.l,x	; this is a long indexed address, nice :)
 rep #%00100000
 clc
 adc #$4000		; add $4000 to the value
 sta $2116		; write to VRAM from here
 lda #$0000		; reset A while it's still 16 bit
-sep #%00100000		; 8 bit A
+sep #%00100000	; 8 bit A
 lda $0000,x		; get the corresponding tile from RAM
 ; VRAM data write mode is still %10000000
 sta $2118		; write
 stz $2119		; this is the hi-byte
 inx
-cpx #9			; finished?
+cpx #$A			; finished?
 bne -			; no, go back
 jmp forever
 
@@ -280,5 +324,6 @@ jmp forever
 .org 0
 .section "Conversiontable"
 VRAMtable:
-.db $00,$02,$04,$40,$42,$44,$80,$82,$84
+.db $00,$02,$04,$06,$08,$0A,$0C,$0E
+.db $40,$42,$44,$80,$82,$84
 .ends
