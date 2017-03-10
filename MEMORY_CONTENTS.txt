@@ -1,0 +1,10 @@
+Addr|Designation
+----|-----------
+$100|Player X
+$101|Player Y
+
+$200|Stored joystick input
+$201|New joystick input
+$202|Used for temp storage for 'multiplication' in player movement (And preserve X)
+$203|Counter for frequency to run projectile motion
+$204|Used to preserve register Y in projectile motion

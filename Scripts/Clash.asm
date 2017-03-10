@@ -39,6 +39,60 @@ VBlank:
 lda $4212		; get joypad status
 and #%00000001	; if joypad is not ready
 bne VBlank		; wait
+
+
+
+
+; TEST FUNCTION - Automove X like a projectile
+; TODO: Figure out if you want caps or lowercase for instructions
+LDA $203	; Load frequency counter into A
+; Increment A and store it back
+INA
+STA $203
+CMP #$A	; Run every 10 times
+BNE ++
+
+; Reset counter
+LDA #$0
+STA $203
+
+; Now start the projectile motion calculation
+LDY #$4	; Clear Y, used as a counter for Y
+--
+DEY
+LDX #$8	; Clear X, used as a counter for X
+-
+DEX
+TYA			; A now holds simulated Y value
+STA $0202	; Store Y value into $0202 to be used for multiplication
+CLC
+; Simulate a multiply by 8
+.rept 7
+ADC $0202	; A*8 = A+A+A+...
+.endr
+; A now holds Y*8
+STX $0202	; Store X (X counter) into $0202
+ADC $0202	; Add X value to A
+TAX
+; X now holds offset of potential X
+LDA $0,x
+CMP #$8
+BNE +
+STY $204	; Preserve Y before loading blank tile
+LDY #$0		; Load blank tile into Y
+STY $0,x	; Put blank tile into current X
+STA $1,x	; Move X over by 1
+LDY $204	; Restore Y
++
+LDX $0202
+CPX #$0	; Loop 8 times
+BNE -
+CPY #$0	; Loop 4 times
+BNE --
+
+++
+
+
 lda $4219		; read joypad input (BYSTudlr)
 sta $0201		; store input
 cmp $0200		; compare input with the previous input
@@ -51,29 +105,25 @@ rti				; button didn't change, so return
 +
 sta $0200		; store as previous joystick input
 
-
 ; TEST FUNCTION - 'pushes X that player is on'
-lda $0101	; Get player Y
-sta $0202	; Store
-clc
-adc $0202
-adc $0202
-adc $0202
-adc $0202
-adc $0202
-adc $0202
-adc $0202	; Mul by 8
-adc $0100	; Add player X
-ldx #$0000	; Clear X
-tax
-lda $0000,x
-CMP #$0000
-BEQ +
-LDY #$0000	;Clear Y
-STY $0000,x
-sta $0001,x
+;lda $0101	; Get player Y coordinate
+;sta $0202	; Store
+;clc
+; 8 rows per col, so mul Y value by 8 to get offset
+;.rept 7 	; Mul by 8 by A*8=A+A+A+...
+;adc $0202
+;.endr
+;adc $0100	; Add player X coordinate
+;ldx #$0000	; Clear X
+;tax
+;lda $0000,x
+;cmp #$0000
+;beq +
+;ldy #$0000	;Clear Y
+;sty $0000,x
+;sta $0001,x
 
-+
+
 lda $0200
 cmp #%10000000  ; B pressed?
 bne +			; if not B, jump
@@ -84,8 +134,9 @@ lda $0101	; Get player Y
 sta $0202	; Store it to a temporary variable
 ; A*3
 clc
-adc	$0202
+.rept 7
 adc $0202
+.endr
 ; A has now been multiplied by 3
 adc $0100	; Add player X
 ; A contains address to write to
@@ -93,10 +144,6 @@ ldx #$0000	; Clear register X
 tax			; Transfer A to X
 lda #$08	; Load an 'X' into register A
 sta $0000,x; Store 'X' into the address held in X
-
-
-
-;inc $0101   ; Decrement player y value
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -161,6 +208,7 @@ rep #%00010000	;16 bit xy
 sep #%00100000	;8 bit ab
 
 ldx #$0000
+stx $203
 - lda UntitledPalette.l,x
 sta $2122
 inx
@@ -307,7 +355,7 @@ lda $0000,x		; get the corresponding tile from RAM
 sta $2118		; write
 stz $2119		; this is the hi-byte
 inx
-cpx #$A			; finished?
+cpx #$28		; finished?
 bne -			; no, go back
 jmp forever
 
@@ -325,5 +373,7 @@ jmp forever
 .section "Conversiontable"
 VRAMtable:
 .db $00,$02,$04,$06,$08,$0A,$0C,$0E
-.db $40,$42,$44,$80,$82,$84
+.db $40,$42,$44,$46,$48,$4A,$4C,$4E
+.db $80,$82,$84,$86,$88,$8A,$8C,$8E
+.db $C0,$C2,$C4,$C6,$C8,$CA,$CC,$CE
 .ends
