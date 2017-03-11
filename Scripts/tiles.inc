@@ -39,7 +39,7 @@ UntitledData:
     .db $ff, $00, $db, $00, $db, $00, $ff, $00, $ff, $00, $bd, $00, $db, $00, $e7, $00
 
 UntitledPalette:
-    .db $00, $00, $E0, $7F, $1F, $00, $FF, $03
+    .db $E2, $00, $E0, $7F, $1F, $00, $FF, $03
 Palette2:
     .db $E0, $7F
 

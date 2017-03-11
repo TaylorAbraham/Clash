@@ -42,9 +42,10 @@ bne VBlank		; wait
 
 
 
+;-------------------;
+; PROJECTILE MOTION ;
+;-------------------;
 
-; TEST FUNCTION - Automove X like a projectile
-; TODO: Figure out if you want caps or lowercase for instructions
 LDA $203	; Load frequency counter into A
 ; Increment A and store it back
 INA
@@ -92,39 +93,18 @@ BNE --
 
 ++
 
+;--------------------;
+;JOYPAD BUTTON CHECKS;
+;--------------------;
 
 lda $4219		; read joypad input (BYSTudlr)
 sta $0201		; store input
 cmp $0200		; compare input with the previous input
 bne +			; did input change from last check?
 rti				; button didn't change, so return
-
-;;;;;;;;;;;;;;;;;;;;;;
-;JOYPAD BUTTON CHECKS;
-;;;;;;;;;;;;;;;;;;;;;;
 +
 sta $0200		; store as previous joystick input
 
-; TEST FUNCTION - 'pushes X that player is on'
-;lda $0101	; Get player Y coordinate
-;sta $0202	; Store
-;clc
-; 8 rows per col, so mul Y value by 8 to get offset
-;.rept 7 	; Mul by 8 by A*8=A+A+A+...
-;adc $0202
-;.endr
-;adc $0100	; Add player X coordinate
-;ldx #$0000	; Clear X
-;tax
-;lda $0000,x
-;cmp #$0000
-;beq +
-;ldy #$0000	;Clear Y
-;sty $0000,x
-;sta $0001,x
-
-
-lda $0200
 cmp #%10000000  ; B pressed?
 bne +			; if not B, jump
 ; B has been pressed
@@ -243,42 +223,7 @@ sta $2115
 ldx #$4000	; write to vram
 stx $2116	; from $4000
 
-;ugly code starts here - it writes the # shape I mentioned before.
-.rept 2
-   ;X|X|X
-   .rept 2
-     ldx #$0000	; tile 0 ( )
-     stx $2118
-     ldx #$0002	; tile 2 (|)
-     stx $2118
-   .endr
-   ldx #$0000
-   stx $2118
-   ;first line finished, add BG's
-   .rept 27
-     stx $2118	; X=0
-   .endr
-   ;beginning of 2nd line
-   ;-+-+-
-   .rept 2
-     ldx #$0004	; tile 4 (-)
-     stx $2118
-     ldx #$0006	; tile 6 (+)
-     stx $2118
-   .endr
-   ldx #$0004	; tile 4 (-)
-   stx $2118
-   ldx #$0000
-   .rept 27
-     stx $2118
-   .endr
-.endr
-.rept 2
-  ldx #$0000	; tile 0 ( )
-  stx $2118
-  ldx #$0002	; tile 2 (|)
-  stx $2118
-.endr
+
 ldx #$6000	; BG2 will start here
 stx $2116
 ldx #$000C	; And will contain 1 tile (cursor)
