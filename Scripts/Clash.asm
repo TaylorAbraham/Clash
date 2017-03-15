@@ -1,3 +1,6 @@
+;TODO: Why doesn't push/pop projectile motion work??
+;TODO: asm syntax highlighting?
+
 .include "Scripts/header.inc"
 .include "Scripts/snes_init.asm"
 
@@ -51,7 +54,7 @@ LDA $203	; Load frequency counter into A
 INA
 STA $203
 CMP #$A	; Run every 10 times
-BNE ++
+BNE +++
 
 ; Reset counter
 LDA #$0
@@ -78,20 +81,24 @@ TAX
 ; X now holds offset of potential X
 LDA $0,x
 CMP #$8
-BNE +
+BNE ++
 STY $204	; Preserve Y before loading blank tile
 LDY #$0		; Load blank tile into Y
 STY $0,x	; Put blank tile into current X
+LDY $202	; Y now holds X counter for comparison
+CPY #$7		; If end of line, don't move X to next row
+BEQ +
 STA $1,x	; Move X over by 1
-LDY $204	; Restore Y
 +
+LDY $204	; Restore Y
+++
 LDX $0202
 CPX #$0	; Loop 8 times
 BNE -
 CPY #$0	; Loop 4 times
 BNE --
 
-++
++++
 
 ;--------------------;
 ;JOYPAD BUTTON CHECKS;

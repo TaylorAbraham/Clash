@@ -11,8 +11,8 @@
 
 .SNESHEADER
   ID "SNES"                     ; 1-4 letter string, just leave it as "SNES"
-  
-  NAME "A small game         "  ; Program Title - can't be over 21 bytes,
+
+  NAME "Clash RPG            "  ; Program Title - can't be over 21 bytes,
   ;    "123456789012345678901"  ; use spaces for unused bytes of the name.
 
   SLOWROM
@@ -51,5 +51,5 @@ EmptyHandler:
 
 .ENDS
 
-.EMPTYFILL $00                  ; fill unused areas with $00, opcode for BRK.  
+.EMPTYFILL $00                  ; fill unused areas with $00, opcode for BRK.
                                 ; BRK will crash the snes if executed.
