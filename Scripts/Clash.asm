@@ -1,11 +1,13 @@
 ;TODO: Why doesn't push/pop projectile motion work??
 ;TODO: asm syntax highlighting?
+;TODO: Normalize capitalization
 
 .include "Scripts/header.inc"
 .include "Scripts/snes_init.asm"
 
-;MAP_WIDTH: db $5
-;MAP_HEIGHT: db $5
+;TODO: Does EQU exist in 65c816?
+;MAP_WIDTH EQU $8
+;MAP_HEIGHT EQU $4
 
 .macro ConvertX
 ; Data in: our coord in A
@@ -34,14 +36,14 @@ sep #%00100000	; 8 bit A
 .bank 0 slot 0
 .org 0
 .section "Vblank"
-;;;;;;;;
+;------;
 ;VBLANK;
-;;;;;;;;
+;------;
 
 VBlank:
-lda $4212		; get joypad status
-and #%00000001	; if joypad is not ready
-bne VBlank		; wait
+lda $4212		; Get joypad status
+and #%00000001	; If joypad is not ready
+bne VBlank		; Wait
 
 
 
@@ -49,16 +51,26 @@ bne VBlank		; wait
 ; PROJECTILE MOTION ;
 ;-------------------;
 
-LDA $203	; Load frequency counter into A
+; TODO: Find better random number generator
+; Generate a random number between 0 and 3
+ldx $102		; Load current random number
+inx 			; Increment number
+cpx #$4
+bne +
+ldx #$0			; Number is greater than or equal to 4, so reset
++
+stx $102		; Store number back
+
+LDA $104		; Load frequency counter into A
 ; Increment A and store it back
 INA
-STA $203
-CMP #$A	; Run every 10 times
+STA $104
+CMP #$A			; Run every 10 times
 BNE +++
 
 ; Reset counter
 LDA #$0
-STA $203
+STA $104
 
 ; Now start the projectile motion calculation
 LDY #$4	; Clear Y, used as a counter for Y
@@ -100,6 +112,32 @@ BNE --
 
 +++
 
+;--------------;
+;ENEMY SPAWNING;
+;--------------;
+LDA $106		; Load enemy frequency counter into A
+; Increment A and store it back
+INA
+STA $106
+CMP #$65			; Run every 101 times
+BNE +
+
+; Reset counter
+LDA #$0
+STA $106
+
+LDA $102	; Fetch random number (column to place enemy)
+CLC
+.REPT 7
+ADC $102	; A = A*8, for column/Y offset
+.ENDR
+ADC #$7		; Add X offset of 7 to place enemy at right edge
+TAX
+LDA #$6		; Load an 'O' tile into A
+STA $0,x
+
++
+
 ;--------------------;
 ;JOYPAD BUTTON CHECKS;
 ;--------------------;
@@ -133,9 +171,9 @@ lda #$08	; Load an 'X' into register A
 sta $0000,x; Store 'X' into the address held in X
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;
+;----------------------;
 ;JOYPAD MOVEMENT CHECKS;
-;;;;;;;;;;;;;;;;;;;;;;;;
+;----------------------;
 +
 lda $0201		; get joypad input
 and #%00001111	; AND input with control stick inputs
@@ -189,13 +227,22 @@ rti 			; done joypad input checks
 .org 0
 .section "Main"
 ;--------------------------------------
+;--------------;
+;INITIALIZATION;
+;--------------;
 Start:
  Snes_Init
 rep #%00010000	;16 bit xy
 sep #%00100000	;8 bit ab
 
+; Make sure global and state variables start cleared
 ldx #$0000
-stx $203
+stx $102
+ldx #$0000
+stx $104
+ldx #$0000
+stx $106
+
 - lda UntitledPalette.l,x
 sta $2122
 inx
@@ -289,6 +336,7 @@ lda $0101		; get our Y coord
 sta $2110		; BG2 vert scroll
 xba
 sta $2110		; write 16 bits
+
 ;--------------------------------------
 ldx #$0000		; reset our counter
 -
