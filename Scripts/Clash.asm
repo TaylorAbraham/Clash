@@ -1,4 +1,4 @@
-;TODO: Why doesn't push/pop projectile motion work??
+;TODO: Why doesn't push/pop projectile motion work?
 ;TODO: asm syntax highlighting?
 ;TODO: Normalize capitalization
 
@@ -9,6 +9,9 @@
 ;MAP_WIDTH EQU $8
 ;MAP_HEIGHT EQU $4
 
+;-------------------;
+; CONVERSION MACROS ;
+;-------------------;
 .macro ConvertX
 ; Data in: our coord in A
 ; Data out: SNES scroll data in C (the 16 bit A)
@@ -31,14 +34,24 @@ rep #%00100000	; 16 bit A
 eor #$FFFF		; this will do A=1-A
 sep #%00100000	; 8 bit A
 .endm
+;-------------------------;
+; Random Number Generator ;
+;-------------------------;
+.macro RNG
+PSHA		; Preserve A
+LDA $102	; Load last random number
+; TODO: Implement XORShift to generate new random number
+STA $102	; Store new random number
+PULA		; Restore A
+.endm
 
 ;--------------------------------------
 .bank 0 slot 0
 .org 0
 .section "Vblank"
-;------;
-;VBLANK;
-;------;
+;------------------;
+;      VBLANK      ;
+;------------------;
 
 VBlank:
 lda $4212		; Get joypad status
@@ -50,16 +63,6 @@ bne VBlank		; Wait
 ;-------------------;
 ; PROJECTILE MOTION ;
 ;-------------------;
-
-; TODO: Find better random number generator
-; Generate a random number between 0 and 3
-ldx $102		; Load current random number
-inx 			; Increment number
-cpx #$4
-bne +
-ldx #$0			; Number is greater than or equal to 4, so reset
-+
-stx $102		; Store number back
 
 LDA $104		; Load frequency counter into A
 ; Increment A and store it back
@@ -119,14 +122,17 @@ LDA $106		; Load enemy frequency counter into A
 ; Increment A and store it back
 INA
 STA $106
-CMP #$65			; Run every 101 times
+CMP #$FF			; Run every 255 times
 BNE +
 
 ; Reset counter
 LDA #$0
 STA $106
 
-LDA $102	; Fetch random number (column to place enemy)
+; Fetch random number (column to place enemy)
+ RNG		; 1 space is required before macros
+LDA $102
+
 CLC
 .REPT 7
 ADC $102	; A = A*8, for column/Y offset
@@ -141,7 +147,6 @@ STA $0,x
 ;--------------------;
 ;JOYPAD BUTTON CHECKS;
 ;--------------------;
-
 lda $4219		; read joypad input (BYSTudlr)
 sta $0201		; store input
 cmp $0200		; compare input with the previous input
@@ -170,11 +175,12 @@ tax			; Transfer A to X
 lda #$08	; Load an 'X' into register A
 sta $0000,x; Store 'X' into the address held in X
 
++
 
 ;----------------------;
 ;JOYPAD MOVEMENT CHECKS;
 ;----------------------;
-+
+
 lda $0201		; get joypad input
 and #%00001111	; AND input with control stick inputs
 sta $0201		; store the AND result
