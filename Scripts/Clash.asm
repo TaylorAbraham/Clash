@@ -12,6 +12,7 @@
 ;-------------------;
 ; CONVERSION MACROS ;
 ;-------------------;
+
 .macro ConvertX
 ; Data in: our coord in A
 ; Data out: SNES scroll data in C (the 16 bit A)
@@ -34,9 +35,11 @@ rep #%00100000	; 16 bit A
 eor #$FFFF		; this will do A=1-A
 sep #%00100000	; 8 bit A
 .endm
+
 ;-------------------------;
 ; Random Number Generator ;
 ;-------------------------;
+
 .macro RNG
 PSHA		; Preserve A
 LDA $102	; Load last random number
@@ -115,19 +118,26 @@ BNE --
 
 +++
 
+;----------------;
+; ENEMY MOVEMENT ;
+;----------------;
+;TODO enemy movement part of projectile motion?
+
+
 ;--------------;
 ;ENEMY SPAWNING;
 ;--------------;
-LDA $106		; Load enemy frequency counter into A
+
+LDA $105		; Load enemy frequency counter into A
 ; Increment A and store it back
 INA
-STA $106
+STA $105
 CMP #$FF			; Run every 255 times
 BNE +
 
 ; Reset counter
 LDA #$0
-STA $106
+STA $105
 
 ; Fetch random number (column to place enemy)
  RNG		; 1 space is required before macros
@@ -147,6 +157,7 @@ STA $0,x
 ;--------------------;
 ;JOYPAD BUTTON CHECKS;
 ;--------------------;
+
 lda $4219		; read joypad input (BYSTudlr)
 sta $0201		; store input
 cmp $0200		; compare input with the previous input
@@ -236,6 +247,7 @@ rti 			; done joypad input checks
 ;--------------;
 ;INITIALIZATION;
 ;--------------;
+
 Start:
  Snes_Init
 rep #%00010000	;16 bit xy
@@ -247,7 +259,7 @@ stx $102
 ldx #$0000
 stx $104
 ldx #$0000
-stx $106
+stx $105
 
 - lda UntitledPalette.l,x
 sta $2122

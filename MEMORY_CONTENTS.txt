@@ -9,9 +9,7 @@ $101|Player Y
 $102|Random number seed (Rerolled every RNG call)
 $103|XXXX
 $104|Counter for frequency to run projectile motion
-$105|XXXX
-$106|Counter for frequency to spawn enemies
-$107|XXXX
+$105|Counter for frequency to spawn enemies
 ----|-----------------------------
     |
 ----|-----------------------------
