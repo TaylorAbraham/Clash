@@ -52,14 +52,15 @@ PULA		; Restore A
 .bank 0 slot 0
 .org 0
 .section "Vblank"
+
 ;------------------;
 ;      VBLANK      ;
 ;------------------;
 
 VBlank:
-lda $4212		; Get joypad status
-and #%00000001	; If joypad is not ready
-bne VBlank		; Wait
+LDA $4212		; Get joypad status
+AND #%00000001	; If joypad is not ready
+BNE VBlank		; Wait
 
 
 
@@ -72,7 +73,7 @@ LDA $104		; Load frequency counter into A
 INA
 STA $104
 CMP #$A			; Run every 10 times
-BNE +++
+BNE endProjectile
 
 ; Reset counter
 LDA #$0
@@ -99,24 +100,31 @@ TAX
 ; X now holds offset of potential X
 LDA $0,x
 CMP #$8
-BNE ++
+BNE +++
 STY $204	; Preserve Y before loading blank tile
 LDY #$0		; Load blank tile into Y
 STY $0,x	; Put blank tile into current X
 LDY $202	; Y now holds X counter for comparison
 CPY #$7		; If end of line, don't move X to next row
-BEQ +
-STA $1,x	; Move X over by 1
+BEQ ++
+LDY $1,x 	; Y now holds tile next to X
+CPY #$6		; If an enemy is 1 over, X is about to hit it
+BNE +
+; TODO: RNG call causes duplicate label error on pass 1
+; RNG		; 1 space is required before macros
+; TODO: RNG logic to determine if enemy should drop loot
 +
-LDY $204	; Restore Y
+STA $1,x	; Move X over by 1
 ++
+LDY $204	; Restore Y
++++
 LDX $0202
 CPX #$0	; Loop 8 times
 BNE -
 CPY #$0	; Loop 4 times
 BNE --
 
-+++
+endProjectile:
 
 ;----------------;
 ; ENEMY MOVEMENT ;
