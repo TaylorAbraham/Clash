@@ -1,7 +1,3 @@
-;TODO: Why doesn't push/pop projectile motion work?
-;TODO: asm syntax highlighting?
-;TODO: Normalize capitalization
-
 .include "Scripts/header.inc"
 .include "Scripts/snes_init.asm"
 
@@ -41,11 +37,11 @@ sep #%00100000	; 8 bit A
 ;-------------------------;
 
 .macro RNG
-PSHA		; Preserve A
-LDA $102	; Load last random number
+psha		; Preserve A
+lda $102	; Load last random number
 ; TODO: Implement XORShift to generate new random number
-STA $102	; Store new random number
-PULA		; Restore A
+sta $102	; Store new random number
+pula		; Restore A
 .endm
 
 ;--------------------------------------
@@ -58,9 +54,9 @@ PULA		; Restore A
 ;------------------;
 
 VBlank:
-LDA $4212		; Get joypad status
-AND #%00000001	; If joypad is not ready
-BNE VBlank		; Wait
+lda $4212		; Get joypad status
+and #%00000001	; If joypad is not ready
+bne VBlank		; Wait
 
 
 
@@ -68,61 +64,61 @@ BNE VBlank		; Wait
 ; PROJECTILE MOTION ;
 ;-------------------;
 
-LDA $104		; Load frequency counter into A
+lda $104		; Load frequency counter into A
 ; Increment A and store it back
-INA
-STA $104
-CMP #$A			; Run every 10 times
-BNE endProjectile
+ina
+sta $104
+cmp #$A			; Run every 10 times
+bne endProjectile
 
 ; Reset counter
-LDA #$0
-STA $104
+lda #$0
+sta $104
 
 ; Now start the projectile motion calculation
-LDY #$4	; Clear Y, used as a counter for Y
+ldy #$4	; Clear Y, used as a counter for Y
 --
-DEY
-LDX #$8	; Clear X, used as a counter for X
+dey
+ldx #$8	; Clear X, used as a counter for X
 -
-DEX
-TYA			; A now holds simulated Y value
-STA $0202	; Store Y value into $0202 to be used for multiplication
-CLC
+dex
+tya			; A now holds simulated Y value
+sta $0202	; Store Y value into $0202 to be used for multiplication
+clc
 ; Simulate a multiply by 8
 .rept 7
-ADC $0202	; A*8 = A+A+A+...
+adc $0202	; A*8 = A+A+A+...
 .endr
 ; A now holds Y*8
-STX $0202	; Store X (X counter) into $0202
-ADC $0202	; Add X value to A
-TAX
+stx $0202	; Store X (X counter) into $0202
+adc $0202	; Add X value to A
+tax
 ; X now holds offset of potential X
-LDA $0,x
-CMP #$8
-BNE +++
-STY $204	; Preserve Y before loading blank tile
-LDY #$0		; Load blank tile into Y
-STY $0,x	; Put blank tile into current X
-LDY $202	; Y now holds X counter for comparison
-CPY #$7		; If end of line, don't move X to next row
-BEQ ++
-LDY $1,x 	; Y now holds tile next to X
-CPY #$6		; If an enemy is 1 over, X is about to hit it
-BNE +
+lda $0,x
+cmp #$8
+bne +++
+sty $204	; Preserve Y before loading blank tile
+ldy #$0		; Load blank tile into Y
+sty $0,x	; Put blank tile into current X
+ldy $202	; Y now holds X counter for comparison
+cpy #$7		; If end of line, don't move X to next row
+beq ++
+ldy $1,x 	; Y now holds tile next to X
+cpy #$6		; If an enemy is 1 over, X is about to hit it
+bne +
 ; TODO: RNG call causes duplicate label error on pass 1
 ; RNG		; 1 space is required before macros
 ; TODO: RNG logic to determine if enemy should drop loot
 +
-STA $1,x	; Move X over by 1
+sta $1,x	; Move X over by 1
 ++
-LDY $204	; Restore Y
+ldy $204	; Restore Y
 +++
-LDX $0202
-CPX #$0	; Loop 8 times
-BNE -
-CPY #$0	; Loop 4 times
-BNE --
+ldx $0202
+cpx #$0	; Loop 8 times
+bne -
+cpy #$0	; Loop 4 times
+bne --
 
 endProjectile:
 
@@ -136,29 +132,29 @@ endProjectile:
 ;ENEMY SPAWNING;
 ;--------------;
 
-LDA $105		; Load enemy frequency counter into A
+lda $105		; Load enemy frequency counter into A
 ; Increment A and store it back
-INA
-STA $105
-CMP #$FF			; Run every 255 times
-BNE +
+ina
+sta $105
+cmp #$FF			; Run every 255 times
+bne +
 
 ; Reset counter
-LDA #$0
-STA $105
+lda #$0
+sta $105
 
 ; Fetch random number (column to place enemy)
  RNG		; 1 space is required before macros
-LDA $102
+lda $102
 
-CLC
-.REPT 7
-ADC $102	; A = A*8, for column/Y offset
-.ENDR
-ADC #$7		; Add X offset of 7 to place enemy at right edge
-TAX
-LDA #$6		; Load an 'O' tile into A
-STA $0,x
+clc
+.rept 7
+adc $102	; A = A*8, for column/Y offset
+.endr
+adc #$7		; Add X offset of 7 to place enemy at right edge
+tax
+lda #$6		; Load an 'O' tile into A
+sta $0,x
 
 +
 
