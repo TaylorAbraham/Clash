@@ -7,5 +7,10 @@ How to Use
 2. Run makeclash.bat to assemble Clash.smc
 3. Run Clash.smc in any SNES emulator
 
-![](Clash.png)
+The Beginning - Tic Tac Toe
+----------
+![](clash.png)
+
+Current State - Shooter
+----------
 ![gif](clash-shooting.gif)
