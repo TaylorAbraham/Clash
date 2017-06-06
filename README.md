@@ -8,3 +8,4 @@ How to Use
 3. Run Clash.smc in any SNES emulator
 
 ![](Clash.png)
+![gif](clash-shooting.gif)
